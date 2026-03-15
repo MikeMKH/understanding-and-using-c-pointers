@@ -32,5 +32,6 @@ function(add_chapter_tests chapter)
     endforeach()
 endfunction()
 
+add_chapter_tests(hello)
 add_chapter_tests(chapter02)
 # add_chapter_tests(chapter03)  <-- uncomment as you progress
