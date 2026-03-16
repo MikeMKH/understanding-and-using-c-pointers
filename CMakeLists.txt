@@ -33,5 +33,5 @@ function(add_chapter_tests chapter)
 endfunction()
 
 add_chapter_tests(hello)
+add_chapter_tests(chapter01)
 add_chapter_tests(chapter02)
-# add_chapter_tests(chapter03)  <-- uncomment as you progress
