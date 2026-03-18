@@ -42,5 +42,59 @@ Test(examples, size_t_given_negative_value) {
   
   snprintf(buffer, sizeof(buffer), "%zu", x);
   cr_assert_str_eq(buffer, "18446744073709551611");
+}
+
+Test(examples, pointer_addition_access_array_members) {
+  int vector[] = {28, 41, 7};
   
+  int *pi = vector;
+  cr_assert_eq(*pi, 28);
+  cr_assert_eq(pi, (int*)&vector,"pointer should point to vector + 0");
+  
+  pi += 1;
+  cr_assert_eq(*pi, 41);
+  cr_assert_eq(pi, (int*)((char*)&vector + sizeof(int)), "pointer should point to vector + 1");
+  
+  pi++;
+  cr_assert_eq(*pi, 7);
+  cr_assert_eq(pi, (int*)((char*)&vector + 2 * sizeof(int)), "pointer should point to vector + 2");
+  
+  pi += 1;
+  cr_assert_eq(pi, (int*)((char*)&vector + 3 * sizeof(int)), "can continues past the end of the array");
+  pi++;
+  cr_assert_eq(pi, (int*)((char*)&vector + 4 * sizeof(int)), "... and so on");
+}
+
+Test(examples, pointer_subtraction) {
+  int vector[] = {28, 41, 7};
+  
+  int *pi = vector + 2;
+  cr_assert_eq(*pi, 7);
+  
+  pi -= 1;
+  cr_assert_eq(*pi, 41);
+  
+  pi--;
+  cr_assert_eq(*pi, 28);
+}
+
+Test(examples, pointer_comparison) {
+  int vector[] = {28, 41, 7};
+  
+  int *p0 = vector;
+  int *p1 = vector + 1;
+  int *p2 = vector + 2;
+  
+  cr_assert_eq(p1 - p0, 1);
+  cr_assert_eq(p2 - p0, 2);
+  cr_assert_eq(p0 - p1, -1);
+  
+  cr_assert_eq(*p0 - *p1, -13, "can still deference pointers to get values");
+  
+  cr_assert(p0 + 1 == p1);
+  cr_assert(p1 < p2);
+  cr_assert(p2 > p1);
+  cr_assert(p0 <= p0);
+  cr_assert(p1 >= p0);
+  cr_assert(p2 != p1);
 }
