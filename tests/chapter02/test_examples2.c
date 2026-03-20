@@ -14,7 +14,7 @@ Test(examples, heap_manager_data_structure) {
   free(pc);
 }
 
-Test(example, need_safe_pointer_to_avoid_memory_leaks) {
+Test(examples, need_safe_pointer_to_avoid_memory_leaks) {
   char *pc = (char *)malloc(strlen("Mike") + 1);
   char *free_me = pc;
   strcpy(pc, "Mike");
