@@ -102,3 +102,25 @@ Test(examples, realloc_can_shrink_memory) {
   cr_assert_str_eq(s2, "1234567");
   free(s2);
 }
+
+Test(examples, assigning_null_to_free_pointer) {
+  char *s = (char *)malloc(16);
+  strcpy(s, "Hello, world!");
+  cr_assert_str_eq(s, "Hello, world!");
+  free(s);
+  /* s is a dangling pointer */
+  /* cr_assert_str_eq(s, "Hello, world!"); */ /* ERROR: AddressSanitizer: heap-use-after-free */
+  s = NULL;
+  cr_assert_null(s, "s should be NULL after assignment");
+}
+
+Test(examples, double_free) {
+  char *p1 = (char *)malloc(16);
+  strcpy(p1, "Hello, world!");
+  cr_assert_str_eq(p1, "Hello, world!");
+  char *p2 = p1;
+  cr_assert_str_eq(p2, "Hello, world!");
+  free(p1);
+  /* cr_assert_str_eq(p2, "Hello, world!"); */ /* ERROR: AddressSanitizer: heap-use-after-free */
+  /* free(p2); */ /* ERROR: AddressSanitizer: attempting double-free */
+}
