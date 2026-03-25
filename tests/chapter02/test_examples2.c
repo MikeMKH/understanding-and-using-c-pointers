@@ -124,3 +124,40 @@ Test(examples, double_free) {
   /* cr_assert_str_eq(p2, "Hello, world!"); */ /* ERROR: AddressSanitizer: heap-use-after-free */
   /* free(p2); */ /* ERROR: AddressSanitizer: attempting double-free */
 }
+
+Test(examples, dangling_pointer_assignment) {
+  int *pi = (int *)malloc(sizeof(int));
+  *pi = 42;
+  cr_assert_eq(*pi, 42);
+  free(pi);
+  /* *pi = 43; */ /* ERROR: AddressSanitizer: heap-use-after-free */
+}
+
+Test(examples, dangling_double_pointer) {
+  int *p1 = (int *)malloc(sizeof(int));
+  *p1 = 42;
+  int *p2 = p1;
+  cr_assert_eq(*p1, 42);
+  cr_assert_eq(*p2, 42);
+  
+  *p2 = 43;
+  cr_assert_eq(*p1, 43);
+  cr_assert_eq(*p2, 43);
+  
+  free(p1);
+  /* *p2 = 44; */ /* ERROR: AddressSanitizer: heap-use-after-free */
+}
+
+Test(examples, dangling_pointer_block_allocation) {
+  int *pi;
+  {
+    int local = 42;
+    pi = &local;
+    cr_assert_eq(*pi, 42);
+  }
+  
+  char buffer[128];
+  strcpy(buffer, "calling a function after the local variable goes out of scope");
+  /* cr_assert_eq(*pi, 42); */ /* ERROR: AddressSanitizer: stack-use-after-scope */
+  /* *pi = 43; */ /* ERROR: AddressSanitizer: stack-use-after-scope */
+}
