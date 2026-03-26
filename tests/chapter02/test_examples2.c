@@ -161,3 +161,56 @@ Test(examples, dangling_pointer_block_allocation) {
   /* cr_assert_eq(*pi, 42); */ /* ERROR: AddressSanitizer: stack-use-after-scope */
   /* *pi = 43; */ /* ERROR: AddressSanitizer: stack-use-after-scope */
 }
+
+/* RAII helper for char* pointers */
+static inline void cleanup_ptr(void *p) {
+  void **pp = (void **)p;
+  if (*pp) free(*pp);
+}
+
+#define RAII_ALLOC(type, var, init_code) \
+    type var __attribute__((cleanup(cleanup_ptr))) = (init_code)
+
+Test(examples, raii_example) {
+  RAII_ALLOC(char*, name, (char*)malloc(32));
+  strcpy(name, "RAII Example");
+  cr_assert_str_eq(name, "RAII Example");
+}
+
+Test(examples, raii_with_block) {
+  char *name = NULL;
+  {
+    RAII_ALLOC(char*, name, (char*)malloc(32));
+    strcpy(name, "RAII Example");
+    cr_assert_str_eq(name, "RAII Example");
+    // cleanup_ptr is called here when exiting the block, freeing the memory allocated for name
+  }
+  // name was freed
+  cr_assert_null(name, "name should be NULL after exiting the block");
+}
+
+Test(examples, multiple_raii) {
+  {
+    RAII_ALLOC(char*, name1, (char*)malloc(32));
+    strcpy(name1, "First");
+    // cleanup_ptr called here for name1
+  }
+  
+  {
+    RAII_ALLOC(char*, name2, (char*)malloc(32));
+    strcpy(name2, "Second");
+    // cleanup_ptr called here for name2
+  }
+}
+
+Test(examples, early_exit) {
+  char *name = NULL;
+  {
+    RAII_ALLOC(char*, name, (char*)malloc(32));
+    if (true) {
+      return;  // name is still freed automatically
+    }
+    strcpy(name, "text");
+  }
+  cr_assert_null(name, "name should be NULL after early exit");
+}
