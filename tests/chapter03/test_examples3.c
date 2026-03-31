@@ -168,3 +168,102 @@ Test(examples, safer_free) {
   saferFree(str);
   cr_assert_null(str, "pointer should be set to NULL after saferFree");
 }
+
+int square(int x) {
+  return x * x;
+}
+
+Test(examples, function_pointer_declaration_and_usage) {
+  int (*fptr)(int) = square; /* or: int (*funcPtr)(int) = &square; */
+  cr_assert_not_null(fptr);
+  int result = fptr(5);
+  cr_assert_eq(result, 25);
+}
+
+typedef int (*funcptr)(int);
+
+Test(examples, function_pointer_using_typedef) {
+  funcptr fptr = square;
+  cr_assert_not_null(fptr);
+  int result = fptr(6);
+  cr_assert_eq(result, 36);
+}
+
+int add(int a, int b) { return a + b; }
+int sub(int a, int b) { return a - b; }
+int mul(int a, int b) { return a * b; }
+
+typedef int (*binary_op)(int, int);
+
+int compute(binary_op op, int x, int y) { return op(x, y); }
+
+Test(examples, function_pointer_as_argument) {
+  cr_assert_eq(compute(add, 5, 3), 8);
+  cr_assert_eq(compute(sub, 5, 3), 2);
+  cr_assert_eq(compute(mul, 5, 3), 15);
+}
+
+binary_op select(char operator) {
+  switch (operator) {
+    case '+': return add;
+    case '-': return sub;
+    case '*': return mul;
+    default : return NULL;
+  }
+}
+
+int evaluate(char operator, int x, int y) {
+  binary_op op = select(operator);
+  return (op != NULL)
+    ? op(x, y)
+    : 0;
+}
+
+Test(examples, function_pointer_as_return_value) {
+  cr_assert_eq(evaluate('+', 5, 3), 8);
+  cr_assert_eq(evaluate('-', 5, 3), 2);
+  cr_assert_eq(evaluate('*', 5, 3), 15);
+  cr_assert_eq(evaluate('/', 5, 3), 0, "unsupported operator should return 0");
+}
+
+binary_op operations[128] = { NULL };
+
+void init_operations(void) {
+  operations['+'] = add;
+  operations['-'] = sub;
+  operations['*'] = mul;
+}
+
+int dispatch(char operator, int x, int y) {
+  binary_op op = operations[(int)operator];
+  return (op != NULL)
+    ? op(x, y)
+    : 0;
+}
+
+Test(examples, function_pointer_in_array) {
+  init_operations();
+  cr_assert_eq(dispatch('+', 5, 3), 8);
+  cr_assert_eq(dispatch('-', 5, 3), 2);
+  cr_assert_eq(dispatch('*', 5, 3), 15);
+  cr_assert_eq(dispatch('/', 5, 3), 0, "unsupported operator should return 0");
+}
+
+Test(examples, compare_function_pointers) {
+  binary_op add_ptr = add;
+  binary_op sub_ptr = sub;
+  cr_assert(add_ptr == add);
+  cr_assert(sub_ptr == sub);
+  cr_assert(add_ptr != sub_ptr);
+}
+
+Test(examples, casting_function_pointers) {
+  void (*void_ptr)(void) = (void (*)(void)) add; /* cast add to a generic function pointer type */
+  cr_assert_not_null(void_ptr);
+  /*
+     we can't call void_ptr directly since it doesn't have the correct type,
+    but we can cast it back to the original type
+  */
+  int (*add_ptr)(int, int) = (int (*)(int, int)) void_ptr;
+  cr_assert_eq(add_ptr(5, 3), 8);
+}
