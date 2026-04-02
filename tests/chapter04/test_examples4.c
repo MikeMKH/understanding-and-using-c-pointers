@@ -36,3 +36,32 @@ Test(examples, multidimensional_array) {
   cr_assert_eq(arr3d[1][0][0], 9);
   cr_assert_eq(arr3d[2][1][3], 24);
 }
+
+Test(examples, array_name_points_to_first_element) {
+  int vector[] = {28, 41, 7};
+  cr_assert_eq(vector, &vector[0], "array name should point to the first element of the array");
+  cr_assert_eq(*vector, 28);
+}
+
+Test(examples, arrays_can_use_pointer_notation) {
+  int vector[] = {28, 41, 7};
+  int *pi = vector;
+  
+  cr_assert_eq(*pi, 28);
+  cr_assert_eq(*(vector), 28);
+  
+  cr_assert_eq(*(pi + 1), 41);
+  cr_assert_eq(*(vector + 1), 41);
+  
+  cr_assert_eq(vector, &vector[0]);
+  cr_assert_eq(pi, &vector[0]);
+  cr_assert_eq(&pi[0], vector);
+}
+
+Test(examples, array_names_are_not_lvalues) {
+  int vector[] = {28, 41, 7};
+  int *pi = vector;
+  /* vector = vector + 1; */ /* error: array type 'int[3]' is not assignable */
+  pi = vector + 1;
+  cr_assert_eq(pi, &vector[1]);
+}
