@@ -65,3 +65,24 @@ Test(examples, array_names_are_not_lvalues) {
   pi = vector + 1;
   cr_assert_eq(pi, &vector[1]);
 }
+
+Test(examples, using_malloc_to_create_arrays) {
+  int *pv = malloc(5 * sizeof(int));
+  cr_assert_not_null(pv, "malloc should return a non-null pointer");
+  
+  for (int i = 0; i < 5; i++) {
+    pv[i] = i + 1;
+  }
+  
+  cr_assert_eq(pv[0], 1);
+  cr_assert_eq(pv[4], 5);
+  
+  for (int i = 0; i < 5; i++) {
+    *(pv + i) = i + 1;
+  }
+  
+  cr_assert_eq(pv[0], 1);
+  cr_assert_eq(pv[4], 5);
+  
+  free(pv);
+}
