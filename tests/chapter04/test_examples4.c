@@ -86,3 +86,174 @@ Test(examples, using_malloc_to_create_arrays) {
   
   free(pv);
 }
+
+typedef int (*getchar_func)(void);
+
+char *__getLine(getchar_func _getchar) {
+  const size_t sizeIncrement  = 10;
+  char *buffer = malloc(sizeIncrement);
+  char *currentPosition = buffer;
+  size_t maximumLength = sizeIncrement;
+  size_t length = 0;
+  int character;
+  
+  if (currentPosition == NULL) { return NULL; /* malloc failed */ }
+  
+  while(1) {
+    character = _getchar();
+    if (character == EOF || character == '\n') { break; }
+    
+    if (length + 1 >= maximumLength) {  /* +1 to reserve space for null terminator */
+      maximumLength += sizeIncrement;
+      char *newBuffer = realloc(buffer, maximumLength);
+      if (newBuffer == NULL) {
+        free(buffer); /* free the old buffer if realloc fails */
+        return NULL; /* realloc failed */
+      }
+      currentPosition = newBuffer + (currentPosition - buffer);
+      buffer = newBuffer;
+    }
+    *currentPosition++ = character;
+    length++;
+  }
+  *currentPosition = '\0';
+  return buffer;
+}
+char *getLine(void) { return __getLine(&getchar); }
+
+static char *mock_input = NULL;
+static int mock_index = 0;
+static int mock_getchar(void) {
+  if (mock_input == NULL || mock_input[mock_index] == '\0') { return EOF; }
+  return mock_input[mock_index++];
+}
+
+static void setup(void) {
+  mock_input = NULL;
+  mock_index = 0;
+}
+
+TestSuite(__getLine, .init = setup);
+
+Test(__getLine, reads_simple_string) {
+  mock_input = "hello";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "hello");
+  free(result);
+}
+
+Test(__getLine, reads_empty_string) {
+  mock_input = "";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "");
+  free(result);
+}
+
+Test(__getLine, reads_single_character) {
+  mock_input = "a";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "a");
+  free(result);
+}
+
+Test(__getLine, stops_at_newline) {
+  mock_input = "hello\nworld";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "hello");
+  free(result);
+}
+
+Test(__getLine, expands_buffer_for_long_input) {
+  // 100 chars exceeds initial 10-char buffer
+  mock_input = "aaaaaaaaaa"  // 10
+               "bbbbbbbbbb"  // 20
+               "cccccccccc"  // 30
+               "dddddddddd"  // 40
+               "eeeeeeeeee"; // 50
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, mock_input);
+  free(result);
+}
+
+Test(__getLine, handles_multiple_expansions) {
+  // Over 100 chars to force multiple buffer resizes
+  mock_input = "aaaaaaaaaa"  // 10
+               "bbbbbbbbbb"  // 20
+               "cccccccccc"  // 30
+               "dddddddddd"  // 40
+               "eeeeeeeeee"  // 50
+               "ffffffffff"  // 60
+               "gggggggggg"  // 70
+               "hhhhhhhhhh"  // 80
+               "iiiiiiiiii"  // 90
+               "jjjjjjjjjj"; // 100
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, mock_input);
+  free(result);
+}
+
+Test(__getLine, handles_eof_without_newline) {
+  mock_input = "test";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "test");
+  free(result);
+}
+
+Test(__getLine, handles_special_characters) {
+  mock_input = "hello\t\tworld  123!@#";
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "hello\t\tworld  123!@#");
+  free(result);
+}
+
+Test(__getLine, handles_null_mock_input) {
+  mock_input = NULL;
+  char *result = __getLine(mock_getchar);
+  cr_assert_str_eq(result, "");
+  free(result);
+}
+
+char* trim(char* phrase) {
+  char* old = phrase;
+  char* new = phrase;
+  
+  /* trim leading spaces */
+  while (*old == ' ') { old++; }
+  
+  /* copy characters until end of string */
+  while (*old) { *(new++) = *(old++); }
+  
+  /* trim trailing spaces */
+  while (new > phrase && *(new - 1) == ' ') { new--; }
+  *new = '\0';
+  
+  return  (char*)realloc(phrase, strlen(phrase)+1);
+}
+
+Test(trim, removes_leading_spaces) {
+  char *input = strdup("   hello world");
+  char *result = trim(input);
+  cr_assert_str_eq(result, "hello world");
+  free(result);
+}
+
+Test(trim, removes_trailing_spaces) {
+  char *input = strdup("hello world    ");
+  char *result = trim(input);
+  cr_assert_str_eq(result, "hello world");
+  free(result);
+}
+
+Test(trim, removes_both_leading_and_trailing_spaces) {
+  char *input = strdup("   hello world    ");
+  char *result = trim(input);
+  cr_assert_str_eq(result, "hello world");
+  free(result);
+}
+
+Test(trim, does_not_modify_original_string_if_no_leading_or_trailing_spaces) {
+  char *input = strdup("hello world");
+  char *result = trim(input);
+  cr_assert_str_eq(result, "hello world");
+  free(result);
+}
