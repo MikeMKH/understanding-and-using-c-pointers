@@ -257,3 +257,24 @@ Test(trim, does_not_modify_original_string_if_no_leading_or_trailing_spaces) {
   cr_assert_str_eq(result, "hello world");
   free(result);
 }
+
+Test(examples, array_of_strings_array_notation) {
+  const char *strings[] = {"hello", "world", "test"};
+  cr_assert_str_eq(strings[0], "hello");
+  cr_assert_str_eq(strings[1], "world");
+  cr_assert_str_eq(strings[2], "test");
+}
+
+Test(examples, array_of_strings_pointer_notation) {
+  const char *strings[] = {"hello", "world", "test"};
+  cr_assert_str_eq(*(strings + 0), "hello");
+  cr_assert_str_eq(*(strings + 1), "world");
+  cr_assert_str_eq(*(strings + 2), "test");
+}
+
+Test(examples, array_of_strings_both_array_and_pointer_notation) {
+  const char *strings[] = {"hello", "world", "test"};
+  for (int i = 0; i < 3; i++) {
+    cr_assert_str_eq(strings[i], *(strings + i));
+  }
+}
