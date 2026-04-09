@@ -278,3 +278,21 @@ Test(examples, array_of_strings_both_array_and_pointer_notation) {
     cr_assert_str_eq(strings[i], *(strings + i));
   }
 }
+
+Test(examples, array_of_pointers) {
+  int *arr[5];
+  for (int i = 0; i < 5; i++) {
+    arr[i] = malloc(sizeof(int));
+    *arr[i] = i + 1;
+  }
+  
+  cr_assert_eq(*arr[0], 1);
+  cr_assert_eq(**(arr+1), 2);
+  cr_assert_eq(**(arr+1), *arr[1]);
+  cr_expect(arr[0] < arr[1], "first pointer should be at a lower memory address than second pointer");
+  
+  for (int i = 0; i < 5; i++) {
+    cr_assert_eq(*arr[i], i + 1);
+    free(arr[i]);
+  }
+}
