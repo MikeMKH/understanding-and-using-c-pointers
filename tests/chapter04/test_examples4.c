@@ -296,3 +296,27 @@ Test(examples, array_of_pointers) {
     free(arr[i]);
   }
 }
+
+Test(examples, each_row_of_multidimensional_array_is_a_one_dimensional_array) {
+  int matrix[2][5] = {
+    {1, 2, 3, 4, 5},
+    {6, 7, 8, 9, 10}
+  };
+  
+  cr_assert_eq(sizeof(matrix[0]), sizeof(int) * 5);
+  cr_assert_eq(sizeof(matrix[1]), sizeof(int) * 5);
+  cr_assert_eq(**(matrix + 1), matrix[1][0]);
+  cr_assert_eq(matrix[0][0], 1);
+  cr_assert_eq(matrix[1][0], 6);
+  cr_assert_eq(*matrix[0] + 1, *(matrix[0] + 1));
+  cr_expect(&matrix[0] < &matrix[1], "first row should be at a lower memory address than second row");
+  cr_expect(matrix < matrix + 1, "first row should be at a lower memory address than second row");
+  
+  int *p = matrix[0];
+  cr_assert_eq(*p, matrix[0][0]);
+  cr_assert_eq(*p + 1, matrix[0][1]);
+  cr_expect_eq(*p + 5, matrix[1][0], "pointer arithmetic should move to the next row after 5 elements");
+  
+  cr_expect_eq(sizeof(matrix[0]), 20, "each row should be 5 integers, so 20 bytes total");
+  cr_expect_eq(sizeof(matrix), 40, "matrix should be 2 rows of 5 integers each, so 40 bytes total");
+}
