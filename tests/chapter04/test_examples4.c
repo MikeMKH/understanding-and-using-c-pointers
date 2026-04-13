@@ -320,3 +320,38 @@ Test(examples, each_row_of_multidimensional_array_is_a_one_dimensional_array) {
   cr_expect_eq(sizeof(matrix[0]), 20, "each row should be 5 integers, so 20 bytes total");
   cr_expect_eq(sizeof(matrix), 40, "matrix should be 2 rows of 5 integers each, so 40 bytes total");
 }
+
+void assertSequence(int arr[][5], int rows) {
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < 5; j++) {
+      const int expected = i * 5 + j + 1;
+      cr_assert_eq(arr[i][j], expected);
+    }
+  }
+}
+Test(examples, passing_a_multidimensional_array) {
+  int matrix[2][5] = {
+    {1, 2, 3, 4, 5},
+    {6, 7, 8, 9, 10}
+  };
+  assertSequence(matrix, 2);
+  assertSequence((int (*)[5])&matrix[0][0], 2);
+}
+
+void assertSequenceUnknownSize(int *arr, int rows, int columns) {
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) {
+      const int position = (i * columns) + j;
+      const int expected = position + 1;
+      cr_assert_eq(*(arr + position), expected);
+    }
+  }
+}
+Test(examples, passing_a_multidimensional_array_of_unknown_size) {
+  int matrix[2][5] = {
+    {1, 2, 3, 4, 5},
+    {6, 7, 8, 9, 10}
+  };
+  assertSequenceUnknownSize(&matrix[0][0], 2, 5);
+  assertSequenceUnknownSize((int *)matrix, 2, 5);
+}
