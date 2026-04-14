@@ -355,3 +355,84 @@ Test(examples, passing_a_multidimensional_array_of_unknown_size) {
   assertSequenceUnknownSize(&matrix[0][0], 2, 5);
   assertSequenceUnknownSize((int *)matrix, 2, 5);
 }
+
+Test(examples, stack_allocated_two_dimensional_array) {
+  int matrix[2][5] = {
+    {1, 2, 3, 4, 5},
+    {6, 7, 8, 9, 10}
+  };
+  cr_assert_eq(matrix[0][0], 1);
+  cr_assert_eq(matrix[1][0], 6);
+  cr_expect(&matrix[0] < &matrix[1], "first row should be at a lower memory address than second row");
+  cr_expect(&matrix[1][0] < &matrix[1][1], "first element of a row should be at a lower memory address than second element of a row");
+}
+
+Test(examples, heap_allocated_two_dimensional_array_non_contiguous_memory) {
+  int rows = 2;
+  int columns = 5;
+  int **matrix = malloc(rows * sizeof(int *));
+  for (int i = 0; i < rows; i++) {
+    matrix[i] = malloc(columns * sizeof(int));
+  }
+  
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) {
+      matrix[i][j] = (i * columns) + j + 1;
+    }
+  }
+  
+  cr_assert_eq(matrix[0][0], 1);
+  cr_assert_eq(matrix[1][0], 6);
+  cr_expect(&matrix[0] < &matrix[1], "first row might be at a lower memory address than second row");
+  cr_expect(&matrix[1][0] < &matrix[1][1], "first element of a row should be at a lower memory address than second element of a row");
+  
+  for (int i = 0; i < rows; i++) {
+    free(matrix[i]);
+  }
+  free(matrix);
+}
+
+Test(examples, heap_allocated_two_dimensional_array_contiguous_memory_with_two_malloc) {
+  int rows = 2;
+  int columns = 5;
+  int **matrix = malloc(rows * sizeof(int *));
+  matrix[0] = malloc(rows * columns * sizeof(int));
+  
+  for (int i = 0; i < rows; i++) {
+    matrix[i] = matrix[0] + (i * columns);
+  }
+  
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) {
+      matrix[i][j] = (i * columns) + j + 1;
+    }
+  }
+  
+  cr_assert_eq(matrix[0][0], 1);
+  cr_assert_eq(matrix[1][0], 6);
+  cr_expect(&matrix[0] < &matrix[1], "first row should be at a lower memory address than second row");
+  cr_expect(&matrix[1][0] < &matrix[1][1], "first element of a row should be at a lower memory address than second element of a row");
+  
+  free(matrix[0]);
+  free(matrix);
+}
+
+Test(examples, heap_allocated_two_dimensional_array_contiguous_memory_with_single_malloc) {
+  int rows = 2;
+  int columns = 5;
+  int *matrix = malloc(rows * columns * sizeof(int));
+  
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) {
+      *(matrix + (i * columns) + j) = (i * columns) + j + 1;
+    }
+  }
+  
+  cr_assert_eq(*(matrix + 0), 1);
+  cr_assert_eq(*(matrix + columns), 6);
+  cr_assert_eq(*(matrix + (columns + 1)), 7);
+  cr_expect(matrix < matrix + columns, "first row should be at a lower memory address than second row");
+  cr_expect(matrix + columns < matrix + (columns + 1), "first element of a row should be at a lower memory address than second element of a row");
+  
+  free(matrix);
+}
