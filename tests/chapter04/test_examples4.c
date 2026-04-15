@@ -436,3 +436,45 @@ Test(examples, heap_allocated_two_dimensional_array_contiguous_memory_with_singl
   
   free(matrix);
 }
+
+Test(examples, compound_literal) {
+  const int x = (const int) {100};
+  cr_assert_eq(x, 100);
+  
+  const int y[3] = {1, 2, 3};
+  cr_assert_eq(y[0], 1);
+  cr_assert_eq(y[1], 2);
+  cr_assert_eq(y[2], 3);
+}
+
+Test(examples, jagged_array_as_array_of_pointers) {
+  int (*(arr[])) = {
+    (int []){1, 2, 3},
+    (int []){4, 5},
+    (int []){6, 7, 8, 9}
+  };
+  cr_assert_eq(arr[0][0], 1);
+  cr_assert_eq(arr[0][1], 2);
+  cr_assert_eq(arr[0][2], 3);
+  cr_assert_eq(arr[1][0], 4);
+  cr_assert_eq(arr[1][1], 5);
+  cr_assert_eq(arr[2][0], 6);
+  cr_assert_eq(arr[2][1], 7);
+  cr_assert_eq(arr[2][2], 8);
+  cr_assert_eq(arr[2][3], 9);
+  
+  size_t row = 0;
+  for (int i = 0; i < 3-1; i++) {
+    cr_expect(arr[row][i] < arr[row][i+1], "first element of a row should be at a lower memory address than second element of a row");
+  }
+  row++;
+  for (int i = 0; i < 2-1; i++) {
+    cr_expect(arr[row][i] < arr[row][i+1], "first element of a row should be at a lower memory address than second element of a row");
+  }
+  row++;
+  for (int i = 0; i < 4-1; i++) {
+    cr_expect(arr[row][i] < arr[row][i+1], "first element of a row should be at a lower memory address than second element of a row");
+  }
+  cr_expect(arr[0] < arr[1], "first row should be at a lower memory address than second row");
+  cr_expect(arr[1] < arr[2], "second row should be at a lower memory address than third row");
+}
