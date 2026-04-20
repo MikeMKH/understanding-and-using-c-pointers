@@ -1,5 +1,6 @@
 #include <criterion/criterion.h>
 #include <stdlib.h>
+#include <string.h>
 
 Test(examples, sizes) {
   cr_assert_eq(sizeof(char), 1);
@@ -74,4 +75,43 @@ Test(examples, string_initialization) {
 */
  
   free(heap);
+}
+
+Test(examples, compare_strings) {
+  const char *s1 = "hi";
+  const char *s2 = "hi";
+  cr_assert_str_eq(s1, s2);
+  cr_assert_eq(strcmp(s1, s2), 0);
+  
+  const char *s3 = "ai";
+  cr_assert(strcmp(s1, s3) == 1);
+  
+  const char *s4 = "hz";
+  cr_assert(strcmp(s1, s4) == -1);
+}
+
+Test(examples, string_copy) {
+  char *buffer = malloc(30);
+  
+  char input[] = {'N', 'i', 'n', 'e', ' ', 'I', 'n', 'c', 'h', ' ', 'N', 'o', 'i', 'z', 'e', '\0'};
+  sscanf(input, "%s", buffer);
+  cr_assert_str_eq(buffer, "Nine");
+  
+  char *value = malloc(strlen(buffer) + 1);
+  strcpy(value, buffer);
+  cr_assert_str_eq(value, "Nine");
+  
+  free(buffer);
+  free(value);
+}
+
+Test(examples, string_concatenation) {
+  char *level = "Error";
+  char *message = "File not found";
+  char *buffer = malloc(strlen(level) + 2 + strlen(message) + 1);
+  strcpy(buffer, level);
+  strcat(buffer, ": ");
+  strcat(buffer, message);
+  cr_assert_str_eq(buffer, "Error: File not found");
+  free(buffer);
 }
