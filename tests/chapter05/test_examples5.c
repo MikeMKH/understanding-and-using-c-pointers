@@ -115,3 +115,61 @@ Test(examples, string_concatenation) {
   cr_assert_str_eq(buffer, "Error: File not found");
   free(buffer);
 }
+
+size_t stringLength_byPointer(char *s) {
+  size_t length = 0;
+  while (*s++) length++;
+  return length;
+}
+
+size_t stringLength_byArray(char s[]) {
+  size_t length = 0;
+  while (*s++) length++;
+  return length;
+}
+
+size_t stringLength_byPointerToConstChar(const char *s) {
+  size_t length = 0;
+  while (*s++) length++;
+  return length;
+}
+
+Test(example, stringLength_use) {
+  char array[] = "Hello Lily!";
+  char *p = (char *)malloc(strlen("Hello Lily!")+1);
+  strcpy(p, "Hello Lily!");
+  
+  size_t expected = strlen("Hello Lily!");
+  cr_assert_eq(stringLength_byPointer(array), expected);
+  cr_assert_eq(stringLength_byPointer(p), expected);
+  cr_assert_eq(stringLength_byArray(array), expected);
+  cr_assert_eq(stringLength_byArray(p), expected);
+  cr_assert_eq(stringLength_byPointerToConstChar(array), expected);
+  cr_assert_eq(stringLength_byPointerToConstChar(p), expected);
+}
+
+char* format(char *buffer, size_t size, const char *name, unsigned int quantity, unsigned int weight) {
+  char *fmt = "Item: %s Quantity: %u Weight: %u";
+  if (buffer == NULL) {
+    size_t len = strlen(fmt) + strlen(name) + (10 + 10) + 1;
+    buffer = malloc(len);
+  }
+  
+  snprintf(buffer, size, fmt, name, quantity, weight);
+  return buffer;
+}
+
+Test(format, caller_allocates_output_string) {
+  size_t size = 100;
+  char *out = malloc(size);
+  format(out, size, "Axle", 25, 45);
+  cr_assert_str_eq(out, "Item: Axle Quantity: 25 Weight: 45");
+  free(out);
+}
+
+Test(format, callee_allocates_output_string) {
+  size_t size = 100;
+  char *out = format(NULL, size, "Axle", 25, 45);
+  cr_assert_str_eq(out, "Item: Axle Quantity: 25 Weight: 45");
+  free(out);
+}
