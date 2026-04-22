@@ -173,3 +173,101 @@ Test(format, callee_allocates_output_string) {
   cr_assert_str_eq(out, "Item: Axle Quantity: 25 Weight: 45");
   free(out);
 }
+
+char* return_asLiteral(int code) {
+  switch (code) {
+    case 0: return "Success";
+    case 1: return "Error";
+    default: return "Unknown code";
+  }
+}
+
+char* return_asStaticLiteral(int code) {
+  static char result[20];
+  
+  switch (code) {
+    case 0: strcpy(result, "Success"); break;
+    case 1: strcpy(result, "Error"); break;
+    default: strcpy(result, "Unknown code"); break;
+  }
+  return result;
+}
+
+char* return_asHeapAllocated(int code) {
+  char *result = malloc(20);
+  
+  switch (code) {
+    case 0: strcpy(result, "Success"); break;
+    case 1: strcpy(result, "Error"); break;
+    default: strcpy(result, "Unknown code"); break;
+  }
+  return result;
+}
+
+char* return_asLocal(int code) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-stack-address"
+  char result[20];
+  
+  switch (code) {
+    case 0: strcpy(result, "Success"); break;
+    case 1: strcpy(result, "Error"); break;
+    default: strcpy(result, "Unknown code"); break;
+  }
+  return result;
+#pragma GCC diagnostic pop
+}
+
+Test(return_strings, as_literal) {
+  char *s1 = return_asLiteral(0);
+  char *s2 = return_asLiteral(1);
+  char *s3 = return_asLiteral(42);
+  cr_assert_str_eq(s1, "Success");
+  cr_assert_str_eq(s2, "Error");
+  cr_assert_str_eq(s3, "Unknown code");
+}
+
+Test(return_strings, as_static_literal) {
+  char *s1 = return_asStaticLiteral(0);
+  cr_assert_str_eq(s1, "Success");
+  char *s2 = return_asStaticLiteral(1);
+  cr_assert_str_eq(s2, "Error");
+  char *s3 = return_asStaticLiteral(42);
+  cr_assert_str_eq(s3, "Unknown code");
+  /*
+    since it is returning a pointer to a static variable
+    all calls will return the same memory address which will contain the last value written to it ("Unknown code")
+  */
+  cr_assert_str_eq(s1, "Unknown code");
+  cr_assert_str_eq(s2, "Unknown code");
+  cr_assert_str_eq(s3, "Unknown code");
+}
+
+Test(return_strings, as_heap_allocated) {
+  char *s1 = return_asHeapAllocated(0);
+  char *s2 = return_asHeapAllocated(1);
+  char *s3 = return_asHeapAllocated(42);
+  cr_assert_str_eq(s1, "Success");
+  cr_assert_str_eq(s2, "Error");
+  cr_assert_str_eq(s3, "Unknown code");
+  free(s1);
+  free(s2);
+  free(s3);
+}
+
+Test(return_strings, as_local) {
+  char *s1 = return_asLocal(0);
+  cr_assert_str_eq(s1, "Success");
+  char *s2 = return_asLocal(1);
+  cr_assert_str_eq(s2, "Error");
+  char *s3 = return_asLocal(42);
+  cr_assert_str_eq(s3, "Unknown code");
+  /*
+    since it is returning a pointer to a local variable
+    behavior is undefined but it will likely return the same memory address for all calls
+    which may contain the last value written to it ("Unknown code")
+  */
+  cr_assert_str_eq(s1, "Unknown code");
+  cr_assert_str_eq(s2, "Unknown code");
+  cr_assert_str_eq(s3, "Unknown code");
+}
