@@ -271,3 +271,73 @@ Test(return_strings, as_local) {
   cr_assert_str_eq(s2, "Unknown code");
   cr_assert_str_eq(s3, "Unknown code");
 }
+
+int compare_strings(const char* s1, const char* s2) {
+  return strcmp(s1, s2);
+}
+
+Test(compare_strings, use) {
+  cr_assert_eq(compare_strings("abc", "abc"), 0);
+  cr_assert_eq(compare_strings("abc", "abd"), -1);
+  cr_assert_eq(compare_strings("abd", "abc"), 1);
+}
+
+char* string_to_lower(const char* s) {
+  size_t len = strlen(s);
+  char* lower = malloc(len + 1);
+  for (size_t i = 0; i < len; i++) {
+    lower[i] = tolower((unsigned char)s[i]);
+  }
+  lower[len] = '\0';
+  return lower;
+}
+
+int compare_strings_ignore_case(const char* s1, const char* s2) {
+  char* l1 = string_to_lower(s1);
+  char* l2 = string_to_lower(s2);
+  int result = strcmp(l1, l2);
+  free(l1);
+  free(l2);
+  return result;
+}
+
+Test(compare_strings_ignore_case, use) {
+  cr_assert_eq(compare_strings_ignore_case("abc", "ABC"), 0);
+  cr_assert_eq(compare_strings_ignore_case("abc", "ABD"), -1);
+  cr_assert_eq(compare_strings_ignore_case("ABD", "abc"), 1);
+}
+
+typedef int (*fptrOperation)(const char*, const char*);
+
+void sort_strings(const char* arr[], size_t n, fptrOperation cmp) {
+  int swap = 1;
+  while (swap) {
+    swap = 0;
+    for (size_t i = 0; i < n - 1; i++) {
+      if (cmp(arr[i], arr[i + 1]) > 0) {
+        swap = 1;
+        const char* temp = arr[i];
+        arr[i] = arr[i + 1];
+        arr[i + 1] = temp;
+      }
+    }
+  }
+}
+
+Test(sort_strings, with_compare) {
+  const char* arr[] = {"banana", "apple", "cherry"};
+  size_t n = 3;
+  sort_strings(arr, n, compare_strings);
+  cr_assert_str_eq(arr[0], "apple");
+  cr_assert_str_eq(arr[1], "banana");
+  cr_assert_str_eq(arr[2], "cherry");
+}
+
+Test(sort_strings, with_compare_ignore_case) {
+  const char* arr[] = {"Banana", "aPPle", "Cherry"};
+  size_t n = 3;
+  sort_strings(arr, n, compare_strings_ignore_case);
+  cr_assert_str_eq(arr[0], "aPPle");
+  cr_assert_str_eq(arr[1], "Banana");
+  cr_assert_str_eq(arr[2], "Cherry");
+}
