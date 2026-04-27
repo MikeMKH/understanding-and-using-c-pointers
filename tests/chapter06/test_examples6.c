@@ -69,3 +69,48 @@ Test(examples, person_using_short) {
 Test(examples, short_and_int_take_same_amount_of_space_due_to_padding) {
   cr_expect_eq(sizeof(Person), sizeof(PersonShort), "due to padding, both structs have the same size");
 }
+
+Person* initialized_person(Person *p,
+  const char* firstName, const char* lastName, const char* title, unsigned int age) {
+  if (!p) { p = malloc(sizeof(Person)); }
+  
+  p->firstName = malloc(strlen(firstName) + 1);
+  strcpy(p->firstName, firstName);
+  p->lastName = malloc(strlen(lastName) + 1);
+  strcpy(p->lastName, lastName);
+  p->title = malloc(strlen(title) + 1);
+  strcpy(p->title, title);
+  p->age = age;
+  return p;
+}
+
+void deallocate_person(Person *p) {
+  free(p->firstName);
+  free(p->lastName);
+  free(p->title);
+}
+
+Test(examples, initialized_person_without_pointer) {
+  Person *p = initialized_person(NULL, "John", "Doe", "Mr.", 30);
+  
+  cr_assert_str_eq(p->firstName, "John");
+  cr_assert_str_eq(p->lastName, "Doe");
+  cr_assert_str_eq(p->title, "Mr.");
+  cr_assert_eq(p->age, 30);
+  
+  deallocate_person(p);
+  free(p);
+}
+
+Test(examples, initialized_person_with_pointer) {
+  Person *p = malloc(sizeof(Person));
+  initialized_person(p, "John", "Doe", "Mr.", 30);
+  
+  cr_assert_str_eq(p->firstName, "John");
+  cr_assert_str_eq(p->lastName, "Doe");
+  cr_assert_str_eq(p->title, "Mr.");
+  cr_assert_eq(p->age, 30);
+  
+  deallocate_person(p);
+  free(p);
+}
