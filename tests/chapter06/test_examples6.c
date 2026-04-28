@@ -70,9 +70,18 @@ Test(examples, short_and_int_take_same_amount_of_space_due_to_padding) {
   cr_expect_eq(sizeof(Person), sizeof(PersonShort), "due to padding, both structs have the same size");
 }
 
+void reset_person(Person *p) {
+    if (!p) return;
+    if (p->firstName) free(p->firstName);
+    if (p->lastName) free(p->lastName);
+    if (p->title) free(p->title);
+    p->firstName = p->lastName = p->title = NULL;
+    p->age = 0;
+}
+
 Person* initialized_person(Person *p,
   const char* firstName, const char* lastName, const char* title, unsigned int age) {
-  if (!p) { p = malloc(sizeof(Person)); }
+  if (!p) { p = calloc(1, sizeof(Person)); }
   
   p->firstName = malloc(strlen(firstName) + 1);
   strcpy(p->firstName, firstName);
@@ -128,22 +137,25 @@ Person* get_person(void) {
   for (int i = 0; i < PERSON_POOL_SIZE; i++) {
     if (person_pool[i] != NULL) {
       Person *p = person_pool[i];
-      person_pool[i] = NULL; // Mark as used
+      reset_person(p);
+      person_pool[i] = NULL; // mark as used
       return p;
     }
   }
-  return malloc(sizeof(Person));
+  return calloc(1, sizeof(Person));
 }
 
 Person* return_person(Person *p) {
   for (int i = 0; i < PERSON_POOL_SIZE; i++) {
     if (person_pool[i] == NULL) {
-      person_pool[i] = p; // Return to pool
+      reset_person(p);
+      person_pool[i] = p;
       return p;
     }
   }
+  // pool is full, deallocate and free
   deallocate_person(p);
-  free(p); // Pool is full, free the person
+  free(p);
   return NULL;
 }
 
