@@ -114,3 +114,81 @@ Test(examples, initialized_person_with_pointer) {
   deallocate_person(p);
   free(p);
 }
+
+#define PERSON_POOL_SIZE 10
+Person *person_pool[PERSON_POOL_SIZE];
+
+void initialize_person_pool(void) {
+  for (int i = 0; i < PERSON_POOL_SIZE; i++) {
+    person_pool[i] = NULL;
+  }
+}
+
+Person* get_person(void) {
+  for (int i = 0; i < PERSON_POOL_SIZE; i++) {
+    if (person_pool[i] != NULL) {
+      Person *p = person_pool[i];
+      person_pool[i] = NULL; // Mark as used
+      return p;
+    }
+  }
+  return malloc(sizeof(Person));
+}
+
+Person* return_person(Person *p) {
+  for (int i = 0; i < PERSON_POOL_SIZE; i++) {
+    if (person_pool[i] == NULL) {
+      person_pool[i] = p; // Return to pool
+      return p;
+    }
+  }
+  deallocate_person(p);
+  free(p); // Pool is full, free the person
+  return NULL;
+}
+
+void setup_person_pool(void) {
+  initialize_person_pool();
+}
+
+void teardown_person_pool(void) {
+  for (int i = 0; i < PERSON_POOL_SIZE; i++) {
+    if (person_pool[i] != NULL) {
+      deallocate_person(person_pool[i]);
+      free(person_pool[i]);
+      person_pool[i] = NULL;
+    }
+  }
+}
+
+Test(person_pool, get_person_and_return_person, .init = setup_person_pool, .fini = teardown_person_pool) {
+  Person *p1 = get_person();
+  initialized_person(p1, "John", "Doe", "Mr.", 30);
+  
+  cr_assert_str_eq(p1->firstName, "John");
+  cr_assert_str_eq(p1->lastName, "Doe");
+  cr_assert_str_eq(p1->title, "Mr.");
+  cr_assert_eq(p1->age, 30);
+  
+  return_person(p1);
+}
+
+Test(person_pool, get_person_pool_exhaustion, .init = setup_person_pool, .fini = teardown_person_pool) {
+  size_t number_of_people = PERSON_POOL_SIZE + 1;
+  Person *people[number_of_people];
+  for (size_t i = 0; i < number_of_people; i++) {
+    people[i] = get_person();
+    initialized_person(people[i], "Jane", "Doe", "Mrs.", 30+i);
+    
+    cr_assert_str_eq(people[i]->firstName, "Jane");
+    cr_assert_str_eq(people[i]->lastName, "Doe");
+    cr_assert_str_eq(people[i]->title, "Mrs.");
+    cr_assert_eq(people[i]->age, 30u+i);
+  }
+  
+  size_t i;
+  for (i = 0; i < number_of_people - 1; i++) {
+    cr_assert_not_null(return_person(people[i]));
+  }
+  cr_assert_null(return_person(people[i]));
+}
