@@ -1,11 +1,125 @@
 #include "data_structures.h"
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-int compare_employees(const Employee *e1, const Employee *e2) {
-  return strcmp(e1->name, e2->name);
+Employee* create_employee(const char *name, unsigned char age) {
+  Employee *e = malloc(sizeof(Employee));
+  strncpy(e->name, name, sizeof(e->name) - 1);
+  e->name[sizeof(e->name) - 1] = '\0'; // Ensure null-termination
+  e->age = age;
+  return e;
 }
 
-void format_employee(const Employee *e, char *buffer, size_t buffer_size) {
-  snprintf(buffer, buffer_size, "Name: %s, Age: %u", e->name, e->age);
+int compare_employees(void *e1, void *e2) {
+  return strcmp(((const Employee *)e1)->name, ((const Employee *)e2)->name);
+}
+
+void format_employee(void *e, char *buffer, size_t buffer_size) {
+  snprintf(buffer, buffer_size, "Name: %s, Age: %u", ((const Employee *)e)->name, ((const Employee *)e)->age);
+}
+
+
+LinkedList* initialize_linked_list(LinkedList *list) {
+  if (!list) { list = malloc(sizeof(LinkedList)); }
+  list->head = list->tail = list->current = NULL;
+  return list;
+}
+
+void deallocate_node(Node *node) {
+  free(node->data);
+  free(node);
+}
+
+void deallocate_linked_list(LinkedList *list) {
+  Node *current = list->head;
+  while (current) {
+    Node *next = current->next;
+    deallocate_node(current);
+    current = next;
+  }
+  free(list);
+}
+
+LinkedList* add_header(LinkedList *list, void *data) {
+  Node *node = malloc(sizeof(Node));
+  node->data = data;
+  node->next = list->head;
+  
+  list->head = node;
+  if (list->tail == NULL) {
+    list->tail = node;
+  }
+  return list;
+}
+
+LinkedList* add_tail(LinkedList *list, void *data) {
+  Node *node = malloc(sizeof(Node));
+  node->data = data;
+  node->next = NULL;
+  
+  if (list->tail) {
+    list->tail->next = node;
+  }
+  list->tail = node;
+  
+  if (list->head == NULL) {
+    list->head = node;
+  }
+  return list;
+}
+
+LinkedList* delete(LinkedList *list, Node *node) {
+  if (list->head == NULL || node == NULL) {
+    return list;
+  }
+  
+  if (list->head == node) {
+    if (list->head->next == NULL) {
+      list->head = list->tail = NULL;
+    } else {
+      list->head = list->head->next;
+    }
+  } else {
+    Node *temp = list->head;
+    while (temp != NULL && temp->next != node) {
+      temp = temp->next;
+    }
+    if (temp != NULL) {
+      temp->next = node->next;
+    }
+  }
+  
+  deallocate_node(node);
+  return list;
+}
+
+Node* get_node(LinkedList *list, COMPARE compare, void *data) {
+  Node *node = list->head;
+  while (node) {
+    if (compare(node->data, data) == 0) {
+      return node;
+    }
+    node = node->next;
+  }
+  return NULL;
+}
+
+char* format_linked_list(LinkedList *list, FORMAT format) {
+  size_t buffer_size = 256;
+  char *buffer = malloc(buffer_size);
+  buffer[0] = '\0';
+  
+  Node *node = list->head;
+  while (node) {
+    char item_buffer[128];
+    format(node->data, item_buffer, sizeof(item_buffer));
+    strncat(buffer, item_buffer, buffer_size - strlen(buffer) - 1);
+    if (node->next) {
+      strncat(buffer, " -> ", buffer_size - strlen(buffer) - 1);
+    }
+    node = node->next;
+  }
+  
+  return buffer;
 }
