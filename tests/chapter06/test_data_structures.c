@@ -51,6 +51,23 @@ Test(linked_list, add_header_and_add_tail) {
   deallocate_linked_list(list);
 }
 
+Test(linked_list, add_header_multiple) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  add_header(list, e1);
+  add_header(list, e2);
+  add_header(list, e3);
+  
+  cr_assert(list->head->data == e3);
+  cr_assert(list->head->next->data == e2);
+  cr_assert(list->tail->data == e1);
+  
+  deallocate_linked_list(list);
+}
+
 Test(linked_list, delete_node) {
   LinkedList* list = initialize_linked_list(NULL);
   
@@ -78,7 +95,7 @@ Test(linked_list, get_node) {
   
   Employee *e1 = create_employee("Alice", 30);
   Employee *e2 = create_employee("Bob", 25);
-  Employee *e3 = create_employee("Charlie", 35);
+  Employee *e3 = create_employee("Clare", 35);
   
   add_tail(add_tail(add_header(list, e1), e2), e3);
   
@@ -98,6 +115,102 @@ Test(linked_list, get_node) {
   cr_assert(compare_employees(node4->data, e3) == 0);
   
   deallocate_linked_list(list);
+}
+
+Test(linked_list, get_node_not_found) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  add_tail(list, e1);
+  add_tail(list, e2);
+  
+  Node *node = get_node(list, compare_employees, e3);
+  cr_assert(node == NULL);
+  
+  deallocate_linked_list(list);
+  free(e3);
+}
+
+Test(linked_list, get_node_empty_list) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  
+  Node *node = get_node(list, compare_employees, e1);
+  cr_assert(node == NULL);
+  
+  free(list);
+  free(e1);
+}
+
+Test(linked_list, multiple_nodes_order) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  add_tail(list, e1);
+  add_tail(list, e2);
+  add_tail(list, e3);
+  
+  cr_assert(list->head->data == e1);
+  cr_assert(list->head->next->data == e2);
+  cr_assert(list->tail->data == e3);
+  
+  deallocate_linked_list(list);
+}
+
+Test(linked_list, delete_tail_node) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  
+  add_tail(list, e1);
+  add_tail(list, e2);
+  
+  Node *tail_node = list->tail;
+  delete(list, tail_node);
+  
+  cr_assert(list->tail == list->head);
+  cr_assert(list->head->data == e1);
+  
+  deallocate_linked_list(list);
+}
+
+Test(linked_list, delete_middle_node) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  add_tail(list, e1);
+  add_tail(list, e2);
+  add_tail(list, e3);
+  
+  Node *middle = list->head->next;
+  delete(list, middle);
+  
+  cr_assert(list->head->data == e1);
+  cr_assert(list->head->next->data == e3);
+  cr_assert(list->tail->data == e3);
+  
+  deallocate_linked_list(list);
+}
+
+Test(linked_list, delete_single_node) {
+  LinkedList* list = initialize_linked_list(NULL);
+  Employee *e1 = create_employee("Alice", 30);
+  
+  add_tail(list, e1);
+  
+  Node *only_node = list->head;
+  delete(list, only_node);
+  
+  cr_assert(list->head == NULL);
+  cr_assert(list->tail == NULL);
+  
+  free(list);
 }
 
 Test(linked_list, format_linked_list) {

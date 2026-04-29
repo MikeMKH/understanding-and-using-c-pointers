@@ -87,6 +87,9 @@ LinkedList* delete(LinkedList *list, Node *node) {
     }
     if (temp != NULL) {
       temp->next = node->next;
+      if (node == list->tail) {
+        list->tail = temp;
+      }
     }
   }
   
