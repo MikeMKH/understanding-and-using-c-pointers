@@ -32,3 +32,10 @@ LinkedList* add_tail(LinkedList *list, void *data);
 LinkedList* delete(LinkedList *list, Node *node);
 Node* get_node(LinkedList *list, COMPARE compare, void *data);
 char* format_linked_list(LinkedList *list, FORMAT format);
+
+typedef LinkedList Queue;
+Queue* initialize_queue(Queue *queue);
+void deallocate_queue(Queue *queue);
+Queue* enqueue(Queue *queue, void *data);
+void* dequeue(Queue *queue);
+char* format_queue(Queue *queue, FORMAT format);

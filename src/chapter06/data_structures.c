@@ -27,7 +27,6 @@ LinkedList* initialize_linked_list(LinkedList *list) {
 }
 
 void deallocate_node(Node *node) {
-  free(node->data);
   free(node);
 }
 
@@ -125,4 +124,30 @@ char* format_linked_list(LinkedList *list, FORMAT format) {
   }
   
   return buffer;
+}
+
+Queue* initialize_queue(Queue *queue) {
+  return initialize_linked_list(queue);
+}
+
+void deallocate_queue(Queue *queue) {
+  deallocate_linked_list(queue);
+}
+
+Queue* enqueue(Queue *queue, void *data) {
+  return add_header(queue, data);
+}
+
+void* dequeue(Queue *queue) {
+  if (queue->tail == NULL) {
+    return NULL;
+  }
+  
+  void *data = queue->tail->data;
+  delete(queue, queue->tail);
+  return data;
+}
+
+char* format_queue(Queue *queue, FORMAT format) {
+  return format_linked_list(queue, format);
 }

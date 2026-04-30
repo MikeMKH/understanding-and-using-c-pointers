@@ -49,6 +49,8 @@ Test(linked_list, add_header_and_add_tail) {
   cr_assert(list->tail != list->head);
   
   deallocate_linked_list(list);
+  free(e1);
+  free(e2);
 }
 
 Test(linked_list, add_header_multiple) {
@@ -66,6 +68,9 @@ Test(linked_list, add_header_multiple) {
   cr_assert(list->tail->data == e1);
   
   deallocate_linked_list(list);
+  free(e1);
+  free(e2);
+  free(e3);
 }
 
 Test(linked_list, delete_node) {
@@ -87,7 +92,9 @@ Test(linked_list, delete_node) {
   cr_assert(list->head == node);
   cr_assert(list->tail == node);
   
+  free(e1);
   deallocate_linked_list(list);
+  free(e2);
 }
 
 Test(linked_list, get_node) {
@@ -115,6 +122,9 @@ Test(linked_list, get_node) {
   cr_assert(compare_employees(node4->data, e3) == 0);
   
   deallocate_linked_list(list);
+  free(e1);
+  free(e2);
+  free(e3);
 }
 
 Test(linked_list, get_node_not_found) {
@@ -159,6 +169,9 @@ Test(linked_list, multiple_nodes_order) {
   cr_assert(list->tail->data == e3);
   
   deallocate_linked_list(list);
+  free(e1);
+  free(e2);
+  free(e3);
 }
 
 Test(linked_list, delete_tail_node) {
@@ -175,7 +188,9 @@ Test(linked_list, delete_tail_node) {
   cr_assert(list->tail == list->head);
   cr_assert(list->head->data == e1);
   
+  free(e2);
   deallocate_linked_list(list);
+  free(e1);
 }
 
 Test(linked_list, delete_middle_node) {
@@ -195,7 +210,10 @@ Test(linked_list, delete_middle_node) {
   cr_assert(list->head->next->data == e3);
   cr_assert(list->tail->data == e3);
   
+  free(e2);
   deallocate_linked_list(list);
+  free(e1);
+  free(e3);
 }
 
 Test(linked_list, delete_single_node) {
@@ -227,4 +245,78 @@ Test(linked_list, format_linked_list) {
   
   free(formatted);
   deallocate_linked_list(list);
+  free(e1);
+  free(e2);
+}
+
+Test(queue, initialize_queue) {
+  Queue* queue = initialize_queue(NULL);
+  cr_assert(queue->head == NULL);
+  cr_assert(queue->tail == NULL);
+  cr_assert(queue->current == NULL);
+  
+  initialize_queue(queue);
+  cr_assert(queue->head == NULL);
+  cr_assert(queue->tail == NULL);
+  cr_assert(queue->current == NULL);
+  
+  deallocate_queue(queue);
+}
+
+Test(queue, enqueue_and_dequeue) {
+  Queue* queue = initialize_queue(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  enqueue(queue, e1);
+  enqueue(queue, e2);
+  enqueue(queue, e3);
+  
+  void *dequeued1 = dequeue(queue);
+  void *dequeued2 = dequeue(queue);
+  void *dequeued3 = dequeue(queue);
+  
+  cr_assert(dequeued1 == e1);
+  cr_assert(dequeued2 == e2);
+  cr_assert(dequeued3 == e3);
+  
+  queue = enqueue(enqueue(queue, e2), e1);
+  void *dequeued4 = dequeue(queue);
+  cr_assert(dequeued4 == e2);
+  void *dequeued5 = dequeue(queue);
+  cr_assert(dequeued5 == e1);
+  
+  deallocate_queue(queue);
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(queue, dequeue_empty_queue) {
+  Queue* queue = initialize_queue(NULL);
+  
+  void *dequeued = dequeue(queue);
+  cr_assert(dequeued == NULL);
+  
+  deallocate_queue(queue);
+}
+
+Test(queue, format_queue) {
+  Queue* queue = initialize_queue(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  
+  enqueue(queue, e1);
+  enqueue(queue, e2);
+  
+  char *formatted = format_queue(queue, format_employee);
+  cr_assert_str_eq(formatted, "Name: Bob, Age: 25 -> Name: Alice, Age: 30");
+  
+  free(formatted);
+  deallocate_queue(queue);
+  free(e1);
+  free(e2);
 }
