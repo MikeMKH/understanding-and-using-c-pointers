@@ -320,3 +320,116 @@ Test(queue, format_queue) {
   free(e1);
   free(e2);
 }
+
+Test(stack, initialize_stack) {
+  Stack* stack = initialize_stack(NULL);
+  cr_assert(stack->head == NULL);
+  cr_assert(stack->tail == NULL);
+  cr_assert(stack->current == NULL);
+  
+  initialize_stack(stack);
+  cr_assert(stack->head == NULL);
+  cr_assert(stack->tail == NULL);
+  cr_assert(stack->current == NULL);
+  
+  deallocate_stack(stack);
+}
+
+Test(stack, push_and_pop) {
+  Stack* stack = initialize_stack(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  push(stack, e1);
+  push(stack, e2);
+  push(stack, e3);
+  
+  void *popped1 = pop(stack);
+  void *popped2 = pop(stack);
+  void *popped3 = pop(stack);
+  
+  cr_assert(popped1 == e3);
+  cr_assert(popped2 == e2);
+  cr_assert(popped3 == e1);
+  
+  push(push(stack, e2), e1);
+  void *popped4 = pop(stack);
+  cr_assert(popped4 == e1);
+  void *popped5 = pop(stack);
+  cr_assert(popped5 == e2);
+  
+  deallocate_stack(stack);
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(stack, pop_until_empty) {
+  Stack* stack = initialize_stack(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  Employee *e3 = create_employee("Alice", 30);
+  
+  push(push(push(stack, e1), e2), e3);
+  
+  void *popped1 = pop(stack);
+  void *popped2 = pop(stack);
+  void *popped3 = pop(stack);
+  void *popped4 = pop(stack);
+  
+  cr_assert(popped1 == e3);
+  cr_assert(popped2 == e2);
+  cr_assert(popped3 == e1);
+  cr_assert(popped4 == NULL);
+  
+  deallocate_stack(stack);
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(stack, pop_single_element) {
+  Stack* stack = initialize_stack(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  push(stack, e1);
+  
+  void *popped = pop(stack);
+  cr_assert(popped == e1);
+  
+  void *popped_again = pop(stack);
+  cr_assert(popped_again == NULL);
+  
+  deallocate_stack(stack);
+  free(e1);
+}
+
+Test(stack, pop_empty_stack) {
+  Stack* stack = initialize_stack(NULL);
+  
+  void *popped = pop(stack);
+  cr_assert(popped == NULL);
+  
+  deallocate_stack(stack);
+}
+
+Test(stack, format_stack) {
+  Stack* stack = initialize_stack(NULL);
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Bob", 25);
+  
+  push(stack, e1);
+  push(stack, e2);
+  
+  char *formatted = format_stack(stack, format_employee);
+  cr_assert_str_eq(formatted, "Name: Bob, Age: 25 -> Name: Alice, Age: 30");
+  
+  free(formatted);
+  deallocate_stack(stack);
+  free(e1);
+  free(e2);
+}

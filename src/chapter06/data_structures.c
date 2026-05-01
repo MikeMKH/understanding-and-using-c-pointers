@@ -151,3 +151,35 @@ void* dequeue(Queue *queue) {
 char* format_queue(Queue *queue, FORMAT format) {
   return format_linked_list(queue, format);
 }
+
+Stack* initialize_stack(Stack *stack) {
+  return initialize_linked_list(stack);
+}
+
+void deallocate_stack(Stack *stack) {
+  deallocate_linked_list(stack);
+}
+
+Stack* push(Stack *stack, void *data) {
+  return add_header(stack, data);
+}
+
+void* pop(Stack *stack) {
+  if (stack->head == NULL) {
+    return NULL;
+  }
+  
+  Node *node = stack->head;
+  void *data = node->data;
+  if (stack->head->next == NULL) {
+    stack->head = stack->tail = NULL;
+  } else {
+    stack->head = stack->head->next;
+  }
+  deallocate_node(node);
+  return data;
+}
+
+char* format_stack(Stack *stack, FORMAT format) {
+  return format_linked_list(stack, format);
+}

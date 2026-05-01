@@ -39,3 +39,10 @@ void deallocate_queue(Queue *queue);
 Queue* enqueue(Queue *queue, void *data);
 void* dequeue(Queue *queue);
 char* format_queue(Queue *queue, FORMAT format);
+
+typedef LinkedList Stack;
+Stack* initialize_stack(Stack *stack);
+void deallocate_stack(Stack *stack);
+Stack* push(Stack *stack, void *data);
+void* pop(Stack *stack);
+char* format_stack(Stack *stack, FORMAT format);
