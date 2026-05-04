@@ -183,3 +183,93 @@ void* pop(Stack *stack) {
 char* format_stack(Stack *stack, FORMAT format) {
   return format_linked_list(stack, format);
 }
+
+void insert_node(TreeNode **realRoot, COMPARE compare, void *data) {
+  TreeNode *node = malloc(sizeof(TreeNode));
+  node->data = data;
+  node->left = node->right = NULL;
+  
+  TreeNode *root = *realRoot;
+  if (root == NULL) {
+    *realRoot = node;
+    return;
+  }
+  
+  while (1) {
+    if (compare((root)->data, data) > 0) {
+      if ((root)->left != NULL) {
+        root = (root)->left;
+      } else {
+        (root)->left = node;
+        break;
+      }
+    } else {
+      if ((root)->right != NULL) {
+        root = (root)->right;
+      } else {
+        (root)->right = node;
+        break;
+      }
+    }
+  }
+  return;
+}
+
+void append_formatted_item(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  char item_buffer[128];
+  format(node->data, item_buffer, sizeof(item_buffer));
+  strncat(buffer, item_buffer, buffer_size - strlen(buffer) - 1);
+  strncat(buffer, " -> ", buffer_size - strlen(buffer) - 1);
+}
+
+void trim_trailing_separator(char *buffer) {
+  size_t len = strlen(buffer);
+  if (len >= 4 && strcmp(buffer + len - 4, " -> ") == 0) {
+    buffer[len - 4] = '\0';
+  }
+}
+
+void in_order_traversal_impl(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  if (node == NULL) {
+    return;
+  }
+  
+  in_order_traversal_impl(node->left, format, buffer, buffer_size);
+  append_formatted_item(node, format, buffer, buffer_size);
+  in_order_traversal_impl(node->right, format, buffer, buffer_size);
+}
+
+void in_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  in_order_traversal_impl(node, format, buffer, buffer_size);
+  trim_trailing_separator(buffer);
+}
+
+void post_order_traversal_impl(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  if (node == NULL) {
+    return;
+  }
+  
+  post_order_traversal_impl(node->left, format, buffer, buffer_size);
+  post_order_traversal_impl(node->right, format, buffer, buffer_size);
+  append_formatted_item(node, format, buffer, buffer_size);
+}
+
+void post_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  post_order_traversal_impl(node, format, buffer, buffer_size);
+  trim_trailing_separator(buffer);
+}
+
+void pre_order_traversal_impl(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  if (node == NULL) {
+    return;
+  }
+  
+  append_formatted_item(node, format, buffer, buffer_size);
+  pre_order_traversal_impl(node->left, format, buffer, buffer_size);
+  pre_order_traversal_impl(node->right, format, buffer, buffer_size);
+}
+
+void pre_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size) {
+  pre_order_traversal_impl(node, format, buffer, buffer_size);
+  trim_trailing_separator(buffer);
+}

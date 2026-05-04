@@ -46,3 +46,15 @@ void deallocate_stack(Stack *stack);
 Stack* push(Stack *stack, void *data);
 void* pop(Stack *stack);
 char* format_stack(Stack *stack, FORMAT format);
+
+typedef struct _tree {
+  void *data;
+  struct _tree *left;
+  struct _tree *right;
+} TreeNode;
+
+void insert_node(TreeNode **realRoot, COMPARE compare, void *data);
+void in_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size);
+void post_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size);
+void pre_order_traversal(TreeNode *node, FORMAT format, char *buffer, size_t buffer_size);
+void trim_trailing_separator(char *buffer);

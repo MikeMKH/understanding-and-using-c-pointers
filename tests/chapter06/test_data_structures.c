@@ -433,3 +433,147 @@ Test(stack, format_stack) {
   free(e1);
   free(e2);
 }
+
+Test(tree, insert_node) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Bob", 25);
+  Employee *e2 = create_employee("Alice", 30);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  insert_node(&root, (COMPARE)compare_employees, e2);
+  insert_node(&root, (COMPARE)compare_employees, e3);
+  
+  cr_assert(root != NULL);
+  cr_assert(compare_employees(root->data, e1) == 0);
+  
+  cr_assert(root->left != NULL);
+  cr_assert(compare_employees(root->left->data, e2) == 0);
+  
+  cr_assert(root->right != NULL);
+  cr_assert(compare_employees(root->right->data, e3) == 0);
+  
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(tree, insert_node_duplicate) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Alice", 30);
+  Employee *e2 = create_employee("Alice", 30);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  insert_node(&root, (COMPARE)compare_employees, e2);
+  
+  cr_assert(root != NULL);
+  cr_assert(compare_employees(root->data, e1) == 0);
+  
+  cr_assert(root->right != NULL);
+  cr_assert(compare_employees(root->right->data, e2) == 0);
+  
+  free(e1);
+  free(e2);
+}
+
+Test(tree, insert_node_empty_tree) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Alice", 30);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  
+  cr_assert(root != NULL);
+  cr_assert(compare_employees(root->data, e1) == 0);
+  
+  free(e1);
+}
+
+Test(tree, in_order_traversal) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Bob", 25);
+  Employee *e2 = create_employee("Alice", 30);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  insert_node(&root, (COMPARE)compare_employees, e2);
+  insert_node(&root, (COMPARE)compare_employees, e3);
+  
+  char buffer[256] = {0};
+  in_order_traversal(root, format_employee, buffer, sizeof(buffer));
+  
+  cr_assert_str_eq(buffer, "Name: Alice, Age: 30 -> Name: Bob, Age: 25 -> Name: Clare, Age: 35");
+  
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(tree, in_order_traversal_empty_tree) {
+  TreeNode *root = NULL;
+  
+  char buffer[256] = {0};
+  in_order_traversal(root, format_employee, buffer, sizeof(buffer));
+  
+  cr_assert_str_eq(buffer, "");
+}
+
+Test(tree, in_order_traversal_single_node) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Alice", 30);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  
+  char buffer[256] = {0};
+  in_order_traversal(root, format_employee, buffer, sizeof(buffer));
+  
+  cr_assert_str_eq(buffer, "Name: Alice, Age: 30");
+  
+  free(e1);
+}
+
+Test(tree, pre_order_traversal) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Bob", 25);
+  Employee *e2 = create_employee("Alice", 30);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  insert_node(&root, (COMPARE)compare_employees, e2);
+  insert_node(&root, (COMPARE)compare_employees, e3);
+  
+  char buffer[256] = {0};
+  pre_order_traversal(root, format_employee, buffer, sizeof(buffer));
+  
+  cr_assert_str_eq(buffer, "Name: Bob, Age: 25 -> Name: Alice, Age: 30 -> Name: Clare, Age: 35");
+  
+  free(e1);
+  free(e2);
+  free(e3);
+}
+
+Test(tree, post_order_traversal) {
+  TreeNode *root = NULL;
+  
+  Employee *e1 = create_employee("Bob", 25);
+  Employee *e2 = create_employee("Alice", 30);
+  Employee *e3 = create_employee("Clare", 35);
+  
+  insert_node(&root, (COMPARE)compare_employees, e1);
+  insert_node(&root, (COMPARE)compare_employees, e2);
+  insert_node(&root, (COMPARE)compare_employees, e3);
+  
+  char buffer[256] = {0};
+  post_order_traversal(root, format_employee, buffer, sizeof(buffer));
+  
+  cr_assert_str_eq(buffer, "Name: Alice, Age: 30 -> Name: Clare, Age: 35 -> Name: Bob, Age: 25");
+  
+  free(e1);
+  free(e2);
+  free(e3);
+}
