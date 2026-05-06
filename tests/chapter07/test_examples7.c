@@ -27,3 +27,35 @@ Test(common_mistakes, using_macro_with_multiple_declarations_on_same_line) {
   pi4 = pi3;
   cr_assert_eq(*pi3, *pi4);
 }
+
+Test(usage_issues, always_check_for_null_on_malloc) {
+  char *str = malloc(500);
+  if (str == NULL) {
+    cr_expect_fail("malloc failed to allocate memory");
+  }
+  cr_assert_not_null(str, "malloc should return a non-null pointer");
+  free(str);
+}
+
+Test(usage_issues, should_not_dereference_wild_pointer) {
+  int *wild;
+  /* ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x0001003fe6b3 bp 0x000304c656b0 sp 0x000304c654c0 T0) */
+  /*wild = 42;*/  /* runtime error: store to null pointer of type 'int' */
+  
+  int num = 0;
+  wild = &num;
+  *wild = 42; 
+  cr_assert_eq(*wild, 42, "wild pointer should be initialized before dereferencing");
+}
+
+Test(usage_issues, always_match_pointer_types) {
+  int value = 2147483647;
+  int *pi = &value;
+  short *ps = (short*)pi;
+  cr_assert_eq(*pi, value);
+  cr_assert_eq(*pi, 2147483647);
+  cr_assert_eq(*pi, 0x7FFFFFFF);
+  cr_assert_neq(*ps, value);
+  cr_assert_eq(*ps, -1);
+  cr_assert_eq(*ps, (short)0xFFFF);
+}
