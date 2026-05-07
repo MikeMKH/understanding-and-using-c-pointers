@@ -1,5 +1,6 @@
 #include <criterion/criterion.h>
 #include <stdlib.h>
+#include <string.h>
 
 Test(common_mistakes, forgetting_to_use_pointer_on_both_declarations) {
   int *pi1, pi2;
@@ -58,4 +59,31 @@ Test(usage_issues, always_match_pointer_types) {
   cr_assert_neq(*ps, value);
   cr_assert_eq(*ps, -1);
   cr_assert_eq(*ps, (short)0xFFFF);
+}
+
+Test(deallocation_issues, double_free) {
+  char *p = malloc(100);
+  free(p);
+  /* free(p); */  /* ERROR: AddressSanitizer: attempting double-free */
+  cr_expect(true, "double free should be avoided");
+}
+
+Test(deallocation_issues, clear_sensitive_data) {
+  // Demonstrating why you should clear sensitive data before freeing
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Waddress"
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Waddress"
+  
+  char *password = malloc(20);
+  strcpy(password, "supersecret");
+  free(password);
+  char *hacker = malloc(20);
+  
+  cr_assert_not_null(hacker, "malloc should return a pointer");
+  cr_expect_not_null(memchr(hacker, 's', 20), "sensitive data may persist after free");
+  
+  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
+  free(hacker);
 }
