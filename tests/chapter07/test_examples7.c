@@ -87,3 +87,28 @@ Test(deallocation_issues, clear_sensitive_data) {
   #pragma GCC diagnostic pop
   free(hacker);
 }
+
+int add3(int a, int b, int c) { return a + b + c; }
+int add2(int a, int b) { return a + b; }
+Test(warnings, using_incompatible_pointer_types_gives_warnings) {
+  int (*fptrcomp)(int, int);
+  /*
+    error: incompatible function pointer types assigning to 'int (*)(int, int)' from 'int (int, int, int)'
+    [-Wincompatible-function-pointer-types]
+  */
+  /* fptrcomp = add3; */
+  cr_expect(true, "assigning incompatible function pointer types should give a warning");
+  
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wcast-function-type-mismatch"
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+  fptrcomp = (int (*)(int, int))add3;
+  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
+  cr_expect(true, "casting to incompatible function pointer types should be avoided");
+  /* fptrcomp(1, 2); */
+  
+  fptrcomp = add2;
+  cr_assert_eq(fptrcomp(1, 2), 3);
+}
