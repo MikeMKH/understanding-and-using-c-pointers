@@ -2,20 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _shape {
-  vFunctions *functions;
-  int x;
-  int y;
-} Shape;
-
-typedef struct _functions {
-  fptrSet setX;
-  fptrSet setY;
-  fptrGet getX;
-  fptrGet getY;
-  fptrToString toString;
-} vFunctions;
-
 char* shapeToString(void *shape) {
   Shape *s = (Shape*)shape;
   char* buffer = malloc(100);
@@ -44,16 +30,6 @@ int   shape_getX(Shape *s) { return s->functions->getX(s); }
 int   shape_getY(Shape *s) { return s->functions->getY(s); }
 char* shape_toString(Shape *s) { return s->functions->toString(s); }
 void  shape_free(Shape *s) { free(s->functions); free(s); }
-
-typedef struct _rectangle {
-  Shape base;
-  int width;
-  int height;
-  fptrGet getWidth;
-  fptrGet getHeight;
-  fptrSet setWidth;
-  fptrSet setHeight;
-} Rectangle;
 
 char* rectangleToString(void *rectangle) {
   Rectangle *r = (Rectangle*)rectangle;

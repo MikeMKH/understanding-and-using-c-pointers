@@ -1,4 +1,31 @@
-typedef struct _shape Shape;
+typedef void (*fptrSet)(void*, int);
+typedef int (*fptrGet)(void*);
+typedef char* (*fptrToString)(void*);
+
+typedef struct _functions {
+  fptrSet setX;
+  fptrSet setY;
+  fptrGet getX;
+  fptrGet getY;
+  fptrToString toString;
+} vFunctions;
+
+typedef struct _shape {
+  vFunctions *functions;
+  int x;
+  int y;
+} Shape;
+
+typedef struct _rectangle {
+  Shape base;
+  int width;
+  int height;
+  fptrGet getWidth;
+  fptrGet getHeight;
+  fptrSet setWidth;
+  fptrSet setHeight;
+} Rectangle;
+
 Shape* getShapeInstance(void);
 
 void  shape_setX(Shape *s, int x);
@@ -17,9 +44,3 @@ int   rectangle_getWidth(Rectangle *r);
 int   rectangle_getHeight(Rectangle *r);
 char* rectangle_toString(Rectangle *r);
 void  rectangle_free(Rectangle *r);
-
-typedef void (*fptrSet)(void*, int);
-typedef int (*fptrGet)(void*);
-typedef char* (*fptrToString)(void*);
-
-typedef struct _functions vFunctions;
